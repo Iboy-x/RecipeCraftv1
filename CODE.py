@@ -72,22 +72,31 @@ with open (recipes[food], "r") as recipe:
                         print(line)
 
             
-
-# -------------------- DIETARY RESTRICTIONS --------------------
+# -------------------- DIETARY RESTRICTIONS & SUBSTITUTIOS --------------------
 
 dietary_keywords = {
-    "lactose intolerance": [
-        "milk", "butter", "cream", "cheese", "yogurt", "yoghurt"
-    ],
+    "lactose intolerance": ["milk", "butter", "cream", "cheese", "yogurt", "yoghurt"],
+    "peanut allergy": ["peanut", "groundnut"],
+    "gluten allergy": ["flour", "wheat", "bread", "pasta", "barley", "rye", "couscous", "breadcrumbs"]
+}
 
-    "peanut allergy": [
-        "peanut", "groundnut"
-    ],
-
-    "gluten allergy": [
-        "flour", "wheat", "bread", "pasta", "barley",
-        "rye", "couscous", "breadcrumbs"
-    ]
+substitutes = {
+    "milk": "oat milk or almond milk",
+    "butter": "plant-based butter",
+    "cream": "coconut cream",
+    "cheese": "vegan cheese",
+    "yogurt": "coconut yogurt",
+    "yoghurt": "coconut yogurt",
+    "peanut": "sunflower seed butter",
+    "groundnut": "sunflower seeds",
+    "flour": "gluten-free flour blend",
+    "wheat": "gluten-free flour blend",
+    "bread": "gluten-free bread",
+    "pasta": "gluten-free pasta",
+    "barley": "quinoa",
+    "rye": "gluten-free oats",
+    "couscous": "quinoa",
+    "breadcrumbs": "gluten-free breadcrumbs"
 }
 
 
@@ -111,36 +120,42 @@ choices = choice.split(",")
 
 for item in choices:
     item = item.strip()
-
     if item in restriction_options:
         selected_restrictions.append(restriction_options[item])
 
 
-# Checking ingredients
-
-conflicts = []
-
-for ingredient in ingredients:
-
-    ingredient_name = " ".join(map(str, ingredient)).lower()
-
+# Recrsive call to check for restrictions and their subs
+def check_substitutions_recursive(ingredients_list, selected_restrictions):
+    # BASE CASE: Stop when there are no ingredients left to check
+    if len(ingredients_list) == 0:
+        return []
+    
+    #  checks the first ingredient in the list 
+    current_ingredient = ingredients_list[0]
+    ingredient_name = " ".join(map(str, current_ingredient)).lower()
+    current_matches = []
+    
     for restriction in selected_restrictions:
-
         for keyword in dietary_keywords[restriction]:
-
             if keyword in ingredient_name:
-                conflicts.append(ingredient_name)
+                sub_item = substitutes[keyword]
+                current_matches.append([ingredient_name, sub_item])
                 break
+    
+    #  Combine current matches with the recursive check of the remaining ingredients
+    return current_matches + check_substitutions_recursive(ingredients_list[1:], selected_restrictions)
+
+suggested_substitutes = check_substitutions_recursive(ingredients, selected_restrictions)
 
 
-
+# Outputting the result
 print("\nDietary Restriction Results:")
 
-if len(conflicts) == 0:
-    print("No matching ingredients found.")
-
+if len(suggested_substitutes) == 0:
+    print("No matching ingredients found. Safe to cook!")
 else:
-    print("The following ingredients may need to be checked:")
-
-    for ingredient in conflicts:
-        print("-", ingredient)
+    print("The following ingredients need to be substituted:")
+    for i in range(len(suggested_substitutes)):
+        original_ing = suggested_substitutes[i][0]
+        replacement = suggested_substitutes[i][1]
+        print("- " + original_ing + " --> Replace with: " + replacement)
