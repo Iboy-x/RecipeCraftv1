@@ -1,94 +1,144 @@
 
+# -------------------- RECIPE SELECTION --------------------
+
 print("What do you crave right now?")
-print("Brownies[D01]" , "Chocolate Chip Cookies[D02]", "Gulab Jamun[D03]", "Chicken Biryani[M01]", sep ="\n" )
-food = input("Type the recipe code and lets get cookin'!! ")
 
-recipes = {"D01": "brownies.txt", "D02": "chocolate_chip_cookies.txt", "D03" : "gulab_jamun.txt", "M01" : "chicken_biryani.txt" } #make this later, checks for which recipe the user wants
-servings = int(input("How many people are you cooking for? "))    #MAKE A VARIABLE THAT GETS THE VALUE FROM THE DICT AND PASSESS IT TO WITH OPEN
+print(
+    "Brownies [D01]",
+    "Chocolate Chip Cookies [D02]",
+    "Gulab Jamun [D03]",
+    "Chicken Biryani [M01]",
+    sep="\n"
+)
 
-############################# EXTRACTING INGREDIENTS FROM TEXT FILE###########
-flag = False
-with open(recipes[food],"r") as file:
-        ingredients=[]
-        for line in file:
-            l = line.strip()     #this line being accessed is a string 
-            # print(line.strip())  #using .strip() to remove extra spaces 
-            
-            if "----------" in line:
-                  flag = False
+food_code = input("Type the recipe code and let's get cookin'! ")
 
-            if flag == True:
-                  
-                  x=line.split()
-                  ingredients.append(x)
-                  
-            if "Ingredients:" in line:
-                  flag = True
-                
-       
-        #SINCE EVERYTHING IN A TEXT FILE IS TYPE STR, THIS CODE CHECKS IF THE FIRST ELEMENT OF THE
-        # LIST OF NESTED LIST IS AN INTEGER AND THEN CONVERTS THE ENTIRE ELEMENT TO INT
-
-
-        for i in range(len(ingredients)) :
-              for j in range(len(ingredients[i])):
-                    if ingredients[i][j][0] in "0123456789":  #IF I DIDNT PUT[0] HERE, IT ONLY CONVERTS ONE DIGIT MEASUREMENT TO INTEGER
-                          ingredients[i][j] = int(ingredients[i][j])        
-
-        def multiplier(ingredients, servings):
-            if servings == 1:
-                  return ingredients
-            elif servings > 1:
-                  for i in range(len(ingredients)):
-                        for j in range(len(ingredients[i])):
-                              if type(ingredients[i][j]) == int:
-                                    ingredients[i][j] = servings * ingredients[i][j]
-                  return ingredients
-            
-        
-        (multiplier(ingredients, servings))
-        loop = True
-
-with open (recipes[food], "r") as recipe:
-        for line in recipe:
-            if loop == True:
-                  if "serving size:" in line:
-                        print("serving size:", servings)
-                  else:
-                        
-                        if "Ingredients:" not  in line:
-                              print(line)
-                        
-                        elif "Ingredients:" in line:
-                              print(line)
-                              loop = False
-                              for i in ingredients:
-                                    for j in i:
-                                          print(j,end=" ")
-                                    print()
-                        
-            elif "Instructions:" in line:
-                        loop = True
-                        print(line)
-
-            
-# -------------------- DIETARY RESTRICTIONS & SUBSTITUTIOS --------------------
-
-dietary_keywords = {
-    "lactose intolerance": ["milk", "butter", "cream", "cheese", "yogurt", "yoghurt"],
-    "peanut allergy": ["peanut", "groundnut"],
-    "gluten allergy": ["flour", "wheat", "bread", "pasta", "barley", "rye", "couscous", "breadcrumbs"]
+recipes = {
+    "D01": "brownies.txt",
+    "D02": "chocolate_chip_cookies.txt",
+    "D03": "gulab_jamun.txt",
+    "M01": "chicken_biryani.txt"
 }
 
+servings = int(input("How many people are you cooking for? "))
+
+
+# -------------------- INGREDIENT EXTRACTION --------------------
+
+def extract_ingredients(filename):
+
+    ingredients = []
+    inside_ingredients = False
+
+    with open(filename, "r") as file:
+
+        for line in file:
+
+            line = line.strip()
+
+            if "Ingredients:" in line:
+                inside_ingredients = True
+                continue
+
+            if "----------" in line:
+                inside_ingredients = False
+
+            if inside_ingredients and line:
+                ingredients.append(line.split())
+
+    # Convert numerical quantities from strings to integers
+
+    for ingredient in ingredients:
+        for i in range(len(ingredient)):
+
+            if ingredient[i].isdigit():
+                ingredient[i] = int(ingredient[i])
+
+    return ingredients
+
+
+# -------------------- SERVING SIZE MULTIPLIER --------------------
+
+def multiply_ingredients(ingredients, servings):
+
+    if servings > 1:
+
+        for ingredient in ingredients:
+
+            for i in range(len(ingredient)):
+
+                if type(ingredient[i]) == int:
+                    ingredient[i] = ingredient[i] * servings
+
+    return ingredients
+
+
+# -------------------- DISPLAY RECIPE --------------------
+
+def display_recipe(filename, ingredients, servings):
+
+    with open(filename, "r") as file:
+
+        display_recipe_text = True
+
+        for line in file:
+
+            if display_recipe_text:
+
+                if "serving size:" in line:
+                    print("Serving size:", servings)
+
+                elif "Ingredients:" in line:
+
+                    print(line, end="")
+
+                    for ingredient in ingredients:
+                        print(*ingredient)
+
+                    display_recipe_text = False
+
+                else:
+                    print(line, end="")
+
+            elif "Instructions:" in line:
+
+                display_recipe_text = True
+                print(line, end="")
+
+
+# -------------------- DIETARY RESTRICTIONS --------------------
+
+dietary_keywords = {
+
+    "lactose intolerance": [
+        "milk", "butter", "cream", "cheese", "yogurt", "yoghurt"
+    ],
+
+    "peanut allergy": [
+        "peanut", "groundnut"
+    ],
+
+    "gluten allergy": [
+        "flour", "wheat", "bread", "pasta", "barley",
+        "rye", "couscous", "breadcrumbs"
+    ]
+}
+
+
+# -------------------- INGREDIENT SUBSTITUTES --------------------
+
 substitutes = {
+
     "milk": "oat milk or almond milk",
     "butter": "plant-based butter",
     "cream": "coconut cream",
     "cheese": "vegan cheese",
     "yogurt": "coconut yogurt",
     "yoghurt": "coconut yogurt",
+
     "peanut": "sunflower seed butter",
     "groundnut": "sunflower seeds",
+
     "flour": "gluten-free flour blend",
     "wheat": "gluten-free flour blend",
     "bread": "gluten-free bread",
@@ -100,62 +150,96 @@ substitutes = {
 }
 
 
-print("\nDo you have any dietary restrictions?")
-print("1. Lactose intolerance")
-print("2. Peanut allergy")
-print("3. Gluten allergy")
-print("0. No restrictions")
+# -------------------- SELECT DIETARY RESTRICTIONS --------------------
 
-restriction_options = {
-    "1": "lactose intolerance",
-    "2": "peanut allergy",
-    "3": "gluten allergy"
-}
+def get_dietary_restrictions():
 
-selected_restrictions = []
+    print("\nDo you have any dietary restrictions?")
 
-choice = input("Enter your choice (e.g. 1,3): ")
+    print(
+        "1. Lactose intolerance",
+        "2. Peanut allergy",
+        "3. Gluten allergy",
+        "0. No restrictions",
+        sep="\n"
+    )
 
-choices = choice.split(",")
+    restriction_options = {
+        "1": "lactose intolerance",
+        "2": "peanut allergy",
+        "3": "gluten allergy"
+    }
 
-for item in choices:
-    item = item.strip()
-    if item in restriction_options:
-        selected_restrictions.append(restriction_options[item])
+    selected_restrictions = []
 
+    choice = input("Enter your choice (e.g. 1,3): ")
 
-# Recrsive call to check for restrictions and their subs
-def check_substitutions_recursive(ingredients_list, selected_restrictions):
-    # BASE CASE: Stop when there are no ingredients left to check
-    if len(ingredients_list) == 0:
-        return []
-    
-    #  checks the first ingredient in the list 
-    current_ingredient = ingredients_list[0]
-    ingredient_name = " ".join(map(str, current_ingredient)).lower()
-    current_matches = []
-    
-    for restriction in selected_restrictions:
-        for keyword in dietary_keywords[restriction]:
-            if keyword in ingredient_name:
-                sub_item = substitutes[keyword]
-                current_matches.append([ingredient_name, sub_item])
-                break
-    
-    #  Combine current matches with the recursive check of the remaining ingredients
-    return current_matches + check_substitutions_recursive(ingredients_list[1:], selected_restrictions)
+    choices = choice.split(",")
 
-suggested_substitutes = check_substitutions_recursive(ingredients, selected_restrictions)
+    for item in choices:
+
+        item = item.strip()
+
+        if item in restriction_options:
+            selected_restrictions.append(restriction_options[item])
+
+    return selected_restrictions
 
 
-# Outputting the result
-print("\nDietary Restriction Results:")
+# -------------------- CHECK INGREDIENTS AND SUGGEST SUBSTITUTES --------------------
 
-if len(suggested_substitutes) == 0:
-    print("No matching ingredients found. Safe to cook!")
-else:
-    print("The following ingredients need to be substituted:")
-    for i in range(len(suggested_substitutes)):
-        original_ing = suggested_substitutes[i][0]
-        replacement = suggested_substitutes[i][1]
-        print("- " + original_ing + " --> Replace with: " + replacement)
+def suggest_substitutes(ingredients, selected_restrictions):
+
+    conflicts = []
+    suggested_substitutes = []
+
+    for ingredient in ingredients:
+
+        ingredient_name = " ".join(str(item) for item in ingredient).lower()
+
+        for restriction in selected_restrictions:
+
+            for keyword in dietary_keywords[restriction]:
+
+                if keyword in ingredient_name:
+
+                    conflicts.append(ingredient_name)
+
+                    suggested_substitutes.append([
+                        ingredient_name,
+                        substitutes[keyword]
+                    ])
+
+                    break
+
+    print("\nDietary Restriction Results:")
+
+    if len(conflicts) == 0:
+
+        print("No matching ingredients found. Safe to cook!")
+
+    else:
+
+        print("The following ingredients need to be substituted:")
+
+        for original, replacement in suggested_substitutes:
+
+            print(
+                "- " + original +
+                " --> Replace with: " + replacement
+            )
+
+
+# -------------------- MAIN PROGRAM --------------------
+
+ingredients = extract_ingredients(recipes[food_code])
+
+ingredients = multiply_ingredients(ingredients, servings)
+
+print("\n-------------------- YOUR RECIPE --------------------\n")
+
+display_recipe(recipes[food_code], ingredients, servings)
+
+selected_restrictions = get_dietary_restrictions()
+
+suggest_substitutes(ingredients, selected_restrictions)
